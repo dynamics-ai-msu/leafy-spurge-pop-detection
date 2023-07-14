@@ -1,4 +1,4 @@
-function [labels,count,endMinute,endQuarSec] = manuallyLabelPops(inputAudio,startMinute,startQuarSec)
+function [labels,count,endMinute,endTenth] = manuallyLabelPops(inputAudio,startMinute,startTenth)
 
     % Load in audio and separate into different channels. The left channel
     % is always used in case the audio is mono or stereo.
@@ -6,45 +6,60 @@ function [labels,count,endMinute,endQuarSec] = manuallyLabelPops(inputAudio,star
     audioL = audio(:,1);
     clear audio;
 
-    % 
+    % If the labels already exists, loads in the labels so that you don't
+    % have to label it all in one go that would be miserable good lord.
+    if(isfile(inputAudio + "-labels.mat"))
+        load(inputAudio + "-labels.mat");
+    else
+        labels = zeros(length(audioL),1);
+    end
+
+    % Determines number of minutes in the input audio file.
     numMinutes = ceil(length(audioL)/60*FS);
-    audioLabels = zeros(length(audioL),1);
     popCount = 0;
 
     endScript = 0;
+
+    % Generates spectrogram for the minute segment
     for minute = startMinute:numMinutes
-        figure(1); clf;
+        fig1 = figure(1); clf;
+        t1 = tiledlayout(2,1,"TileSpacing","compact","Padding","tight"); hold on;
         p1 = nexttile;
         spectrogram(audioL((minute*60*FS)+1:minute*60*FS+60*FS),hann(512),128,512,FS,'yaxis'); colorbar off; hold on;
         p1.YLim = [5 60];
         p2 = nexttile;
         p2.XGrid = 'on'; p2.XMinorGrid = 'on';
-        t = 0:1/FS:(length(audioL((minute*60*FS):minute*60*FS+60*FS))-1)/FS;
-        plot(t,audio((minute*60*FS):(minute*60*FS)+60*FS))
+        p2.YLim = [-.3 .3];
+        t = 0:1/FS:60;
+        plot(t',audioL(minute*60*FS + 1 : minute*60*FS + 60*FS + 1));
+        linkaxes([p1 p2],'x');
 
-        for tenthSec = startQuarSec:999
+        % Scrolls through a tenth of a second at a time, which is pretty
+        % much the largest the frame can be and still have the pops be
+        % visible.
+        for tenthSec = startTenth:999
 
             p1.XLim = [tenthSec*.1 (tenthSec+1)*.1];
             p2.XLim = [tenthSec*.1 (tenthSec+1)*.1];
+            p2.YLim = [-.3 .3];
             pause(.001);
 
-            popFound = input("Is there a pop? (y or n): ","s");
             restart = 1;
             while(restart == 1)
+                popFound = input("Is there a pop? [ y | n | relabel | end ]: ","s");
                 if(strcmpi(popFound, "y"))
                     popCount = popCount + 1;
                     startTime = input("Pop Start: ");
                     endTime = input("Pop End: ");
-                    audioLabels(ceil(startTime*FS):ceil(endTime*FS)) = 1;
+                    labels(ceil(minute*60*FS + startTime*FS):ceil(minute*60*FS + endTime*FS)) = 1;
                         while(restart == 1)
                             popFound = input("Are there any more pops? (y or n): ","s");
                             if(strcmpi(popFound, "y"))
                                 popCount = popCount + 1;
                                 startTime = input("Pop Start: ");
                                 endTime = input("Pop End: ");
-                                audioLabels(ceil(startTime*FS):ceil(endTime*FS)) = 1;
-                                popFound = input("Are there any more pops? (y or n): ","s");
-                                restart = 0;
+                                labels(ceil(minute*60*FS + startTime*FS):ceil(minute*60*FS + endTime*FS)) = 1;
+                                restart = 1;
                             elseif(strcmpi(popFound,"n"))
                                 restart = 0;
                             else
@@ -58,10 +73,14 @@ function [labels,count,endMinute,endQuarSec] = manuallyLabelPops(inputAudio,star
                 elseif(strcmpi(popFound,"end"))
                     endScript = 1;
                     endMinute = minute;
-                    endQuarSec = tenthSec;
-                    labels = audioLabels;
+                    endTenth = tenthSec;
+                    labels = labels;
                     save(inputAudio + "-labels.mat","labels");
                     break
+                elseif(strcmpi(popFound,"relabel"))
+                    disp("Clearing labels for frame");
+                    labels(ceil(minute*60*FS + startTime*FS):ceil(minute*60*FS + endTime*FS)) = 0;
+                    restart = 1;
                 else
                     disp("Input must be y or n");
                     restart = 1;
@@ -81,7 +100,7 @@ function [labels,count,endMinute,endQuarSec] = manuallyLabelPops(inputAudio,star
     end
 
 
-    labels = audioLabels;
+    labels = labels;
     count = popCount;
     save(inputAudio + "-labels.mat","labels");
 
