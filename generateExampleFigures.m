@@ -34,7 +34,7 @@ fig2 = figure(2);
 t2 = tiledlayout(fig2,3,2);
 % 1s Audio
 p1 = nexttile;
-plot(audio(140301674:140302154)); title("Audio (1s)");
+plot(audio(140301674:140302154)); title("Audio");
 xlim([0 480]);
 % Pop Audio
 p2 = nexttile;
