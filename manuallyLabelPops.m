@@ -15,7 +15,9 @@ function [labels,count,endMinute,endTenth] = manuallyLabelPops(inputAudio,startM
     end
 
     % Determines number of minutes in the input audio file.
-    numMinutes = ceil(length(audioL)/60*FS);
+    numMinutes = ceil(length(audioL)/60/FS);
+    difference = numMinutes*60*FS - length(audioL);
+    audioL = [audioL ; zeros(difference,1)];
     popCount = 0;
 
     endScript = 0;
@@ -29,19 +31,20 @@ function [labels,count,endMinute,endTenth] = manuallyLabelPops(inputAudio,startM
         p1.YLim = [5 60];
         p2 = nexttile;
         p2.XGrid = 'on'; p2.XMinorGrid = 'on';
-        p2.YLim = [-.3 .3];
+        p2.YLim = [-1 1];
         t = 0:1/FS:60;
-        plot(t',audioL(minute*60*FS + 1 : minute*60*FS + 60*FS + 1));
+        plot(t',audioL(minute*60*FS : minute*60*FS + 60*FS));
         linkaxes([p1 p2],'x');
+        pause(.001);
 
         % Scrolls through a tenth of a second at a time, which is pretty
         % much the largest the frame can be and still have the pops be
         % visible.
-        for tenthSec = startTenth:999
+        for tenthSec = startTenth:240
 
-            p1.XLim = [tenthSec*.1 (tenthSec+1)*.1];
-            p2.XLim = [tenthSec*.1 (tenthSec+1)*.1];
-            p2.YLim = [-.3 .3];
+            p1.XLim = [tenthSec*.25 (tenthSec+1)*.25];
+            p2.XLim = [tenthSec*.25 (tenthSec+1)*.25];
+            p2.YLimMode = "auto";
             pause(.001);
 
             restart = 1;
@@ -79,7 +82,7 @@ function [labels,count,endMinute,endTenth] = manuallyLabelPops(inputAudio,startM
                     break
                 elseif(strcmpi(popFound,"relabel"))
                     disp("Clearing labels for frame");
-                    labels(ceil(minute*60*FS + startTime*FS):ceil(minute*60*FS + endTime*FS)) = 0;
+                    labels(ceil(minute*60*FS + tenthSec*.25*FS):ceil(minute*60*FS + (tenthSec+1)*.25*FS)) = 0;
                     restart = 1;
                 else
                     disp("Input must be y or n");
