@@ -27,6 +27,8 @@ spectrogram(audio(140200000:140392000),hann(512),128,512,FS,'yaxis'); colorbar o
 p6 = nexttile;
 spectrogram(audio(140293972:140310356),hann(512),128,512,FS,'yaxis'); colorbar off; title("Pop Spectrogram");
 
+exportgraphics(fig1,"AudioSpectrogramsExamples.pdf","ContentType","vector");
+
 %% Wavelet Scattering Example
 fig2 = figure(2);
 t2 = tiledlayout(fig2,3,2);
@@ -59,10 +61,17 @@ p6 = nexttile;
 img = scattergram(waveletNet,U);
 imagesc(img); title("Pop Scalogram Coefficients");
 
+exportgraphics(fig2,"ScatteringTransformExamples.pdf","ContentType","vector");
+
 %% CWT Future Work
 fig3 = figure(3);
 cwt(audio(140293972:140310356)); title("Pop CWT");
+exportgraphics(fig3, "PopCWTExample.pdf","ContentType","vector");
+
 fig4 = figure(4);
 cwt(audio(1:16384)); title("Regular Audio CWT");
+exportgraphics(fig4,"AudioCWTExample.pdf","ContentType","vector");
+
 fig5 = figure(5);
 cwt(audio(47421700:47438084)); title("Clipping CWT");
+exportgraphics(fig5,"ClippingCWTExample.pdf","ContentType","vector");
