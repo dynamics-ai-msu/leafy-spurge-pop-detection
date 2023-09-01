@@ -8,3 +8,4 @@
 - sparseAutoencoder*.mat : Trained autoencoder
 
 the audio folder contains audio and labels.
+the figures folder contains figures for presentations and such.
