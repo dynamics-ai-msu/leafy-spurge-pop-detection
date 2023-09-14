@@ -9,8 +9,7 @@ testAudio = num2cell(splitAudio,1);
 
 waveletCoeffs = cell(1,size(splitAudio,2));
 waveletNet = waveletScattering(SignalLength=.0025*FS,SamplingFrequency=FS, ...
-                               QualityFactors=[4 1],InvarianceScale=.0005, ...
-                               OptimizePath=true);
+                               QualityFactors=[4 1],OptimizePath=true);
 
     % Scattering transform
     parfor index = 1:numel(waveletCoeffs)
